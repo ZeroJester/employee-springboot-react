@@ -117,28 +117,80 @@ const EmployeeTable = () => {
   const [editedEmployeeData, setEditedEmployeeData] = useState({});
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newEmployeeData, setNewEmployeeData] = useState({
+    fullname: '',
+    email: '',
+    phoneNumber: '',
+    jobTitle: '',
+    gender: ''
+  });
+
+const handleAddInputChange = (e) => {
+  const { name, value } = e.target;
+  setNewEmployeeData((prevData) => ({
+    ...prevData,
+    [name]: value,
+  }));
+};
+
+const handleAddSubmit = () => {
+  fetch('/add', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newEmployeeData),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      fetchEmployees(); // Refresh the employee table
+      handleAddClose();
+    })
+    .catch((error) => {
+      console.error('Error adding employee:', error);
+    });
+};
 
 
+const handleAddOpen = () => {
+  setAddOpen(true);
+};
 
+const handleAddClose = () => {
+  setAddOpen(false);
+  setNewEmployeeData({
+    fullname: '',
+    email: '',
+    phoneNumber: '',
+    jobTitle: '',
+    gender: ''
+  });
+};
 
-  useEffect(() => {
-    fetch('/getAllEmployees')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setEmployees(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching employee data:', error);
-        setError(error);
-        setLoading(false);
-      });
-  }, []);
+const fetchEmployees = () => {
+  setLoading(true);
+  fetch('/getAllEmployees')
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setEmployees(data);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error('Error fetching employee data:', error);
+      setError(error);
+      setLoading(false);
+    });
+};
+
+ useEffect(() => {
+   fetchEmployees();
+ }, []);
 
   const handleViewClick = (employee) => {
     setSelectedEmployee(employee);
@@ -151,10 +203,10 @@ const EmployeeTable = () => {
     })
     .then(response => {
       if (response.ok) {
-        // Remove the deleted employee from the state
         setEmployees(prevEmployees => prevEmployees.filter(emp => emp.id !== selectedEmployee.id));
-        handleRemoveClose(); // Close the confirmation dialog
-        setRemove(false); // Hide the remove confirmation dialog
+        fetchEmployees();
+        handleRemoveClose();
+        setRemove(false);
       } else {
         throw new Error('Failed to remove employee');
       }
@@ -200,6 +252,7 @@ const handleEditSubmit = () => {
             employee.id === editedEmployeeData.id ? editedEmployeeData : employee
           )
         );
+        fetchEmployees();
         handleEditClose();
         setEditMode(false);
       } else {
@@ -249,7 +302,7 @@ const handleEditSubmit = () => {
 
   return (
     <StyledContainer>
-      <StyledTypography variant="h4" component="h2" gutterBottom>
+      <StyledTypography style = {{padding: "30px"}} variant="h4" component="h2" gutterBottom>
         Employee List
       </StyledTypography>
       <StyledTableContainer component={Paper}>
@@ -294,7 +347,70 @@ const handleEditSubmit = () => {
           </TableBody>
         </Table>
       </StyledTableContainer>
-       <Button variant="outlined" style={{marginTop: "50px", fontWeight: "bold" }}>Add Employee</Button>
+       <Button
+         variant="outlined"
+         style={{ marginTop: "50px", fontWeight: "bold" }}
+         onClick={handleAddOpen}
+       >
+         Add Employee
+       </Button>
+
+<StyledDialog open={addOpen} onClose={handleAddClose}>
+  <StyledDialogTitle>Add New Employee</StyledDialogTitle>
+  <StyledDialogContent>
+    <form>
+      <TextField
+        name="fullname"
+        label="Full Name"
+        value={newEmployeeData.fullname}
+        onChange={handleAddInputChange}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        name="email"
+        label="Email"
+        value={newEmployeeData.email}
+        onChange={handleAddInputChange}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        name="phoneNumber"
+        label="Phone Number"
+        value={newEmployeeData.phoneNumber}
+        onChange={handleAddInputChange}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        name="jobTitle"
+        label="Job Title"
+        value={newEmployeeData.jobTitle}
+        onChange={handleAddInputChange}
+        fullWidth
+        margin="normal"
+      />
+      <TextField
+        name="gender"
+        label="Gender"
+        value={newEmployeeData.gender}
+        onChange={handleAddInputChange}
+        fullWidth
+        margin="normal"
+      />
+    </form>
+  </StyledDialogContent>
+  <StyledDialogActions>
+    <Button onClick={handleAddClose} color="primary">
+      Cancel
+    </Button>
+    <Button onClick={handleAddSubmit} color="primary">
+      Save
+    </Button>
+  </StyledDialogActions>
+</StyledDialog>
+
 
       <StyledDialog open={viewOpen} onClose={handleViewClose}>
         <StyledDialogTitle>Employee Details</StyledDialogTitle>
