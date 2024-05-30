@@ -21,8 +21,15 @@ public class EmployeeController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addEmployee(@RequestBody Employee employee){
-        employeeRepository.save(employee);
-        return new ResponseEntity<>(employee, HttpStatus.OK);
+
+        if (employee==null || employee.getEmail().isEmpty() || employee.getFullname().isEmpty() || employee.getGender().isEmpty()
+        || employee.getJobTitle().isEmpty() || employee.getPhoneNumber().isEmpty()){
+            return new ResponseEntity<>(employee, HttpStatus.BAD_REQUEST);
+        }
+        else{
+            employeeRepository.save(employee);
+            return new ResponseEntity<>(employee, HttpStatus.OK);
+        }
     }
 
     @DeleteMapping("/remove/{id}")
