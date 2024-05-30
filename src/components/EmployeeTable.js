@@ -99,9 +99,10 @@ const EmployeeDetailsTableRow = styled(TableRow)({
 const EmployeeDetailsTableCell = styled(TableCell)({
   fontWeight: 'bold',
   '&:first-of-type': {
-      width: '30%', // Adjust the width as needed
+      width: '30%',
     },
 });
+
 
 const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
@@ -109,10 +110,14 @@ const EmployeeTable = () => {
   const [error, setError] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [remove, setRemove] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editedEmployee, setEditedEmployee] = useState(null);
   const [editedEmployeeData, setEditedEmployeeData] = useState({});
+  const [viewOpen, setViewOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+
 
 
 
@@ -137,7 +142,7 @@ const EmployeeTable = () => {
 
   const handleViewClick = (employee) => {
     setSelectedEmployee(employee);
-    setOpen(true);
+    setViewOpen(true);
   };
 
   const handleConfirmRemove = () => {
@@ -148,7 +153,7 @@ const EmployeeTable = () => {
       if (response.ok) {
         // Remove the deleted employee from the state
         setEmployees(prevEmployees => prevEmployees.filter(emp => emp.id !== selectedEmployee.id));
-        handleClose(); // Close the confirmation dialog
+        handleRemoveClose(); // Close the confirmation dialog
         setRemove(false); // Hide the remove confirmation dialog
       } else {
         throw new Error('Failed to remove employee');
@@ -160,17 +165,16 @@ const EmployeeTable = () => {
   }
 
 const handleEditClick = (employee) => {
-  setEditMode(true);
   setEditedEmployee(employee);
-  setEditedEmployeeData({
-    id: employee.id,
-    fullname: employee.fullname,
-    email: employee.email,
-    phoneNumber: employee.phoneNumber,
-    jobTitle: employee.jobTitle,
-    gender: employee.gender,
-  });
-  setOpen(true); // Open the dialog for editing
+    setEditedEmployeeData({
+      id: employee.id,
+      fullname: employee.fullname,
+      email: employee.email,
+      phoneNumber: employee.phoneNumber,
+      jobTitle: employee.jobTitle,
+      gender: employee.gender,
+    });
+    setEditOpen(true);
 };
 
 const handleEditInputChange = (e) => {
@@ -196,7 +200,7 @@ const handleEditSubmit = () => {
             employee.id === editedEmployeeData.id ? editedEmployeeData : employee
           )
         );
-        handleClose();
+        handleEditClose();
         setEditMode(false);
       } else {
         throw new Error('Failed to update employee');
@@ -207,11 +211,14 @@ const handleEditSubmit = () => {
     });
 };
 
-
-
-  const handleClose = () => {
-    setOpen(false);
+  const handleViewClose = () => {
+    setViewOpen(false);
     setSelectedEmployee(null);
+  };
+
+  const handleEditClose = () => {
+    setEditOpen(false);
+    setEditedEmployee(null);
   };
 
   const handleRemoveClick = (employee) => {
@@ -287,8 +294,9 @@ const handleEditSubmit = () => {
           </TableBody>
         </Table>
       </StyledTableContainer>
+       <Button variant="outlined" style={{marginTop: "50px", fontWeight: "bold" }}>Add Employee</Button>
 
-      <StyledDialog open={open} onClose={handleClose}>
+      <StyledDialog open={viewOpen} onClose={handleViewClose}>
         <StyledDialogTitle>Employee Details</StyledDialogTitle>
         <StyledDialogContent>
           {selectedEmployee && (
@@ -323,7 +331,7 @@ const handleEditSubmit = () => {
           )}
         </StyledDialogContent>
         <StyledDialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleViewClose} color="primary">
             Close
           </Button>
         </StyledDialogActions>
@@ -331,7 +339,7 @@ const handleEditSubmit = () => {
 
 
 
-<StyledDialog open={open} onClose={handleClose}>
+<StyledDialog open={editOpen} onClose={handleEditClose}>
   <StyledDialogTitle>Edit Employee Details</StyledDialogTitle>
   <StyledDialogContent>
     <form>
@@ -378,7 +386,7 @@ const handleEditSubmit = () => {
     </form>
   </StyledDialogContent>
   <StyledDialogActions>
-    <Button onClick={handleClose} color="primary">
+    <Button onClick={handleEditClose} color="primary">
       Cancel
     </Button>
     <Button onClick={handleEditSubmit} color="primary">
