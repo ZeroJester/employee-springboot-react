@@ -108,7 +108,7 @@ const EmployeeDetailsTableCell = styled(TableCell)({
     },
 });
 
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 3;
 
 const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
