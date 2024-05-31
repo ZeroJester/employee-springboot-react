@@ -9,7 +9,7 @@ import {
   Paper,
   Container,
   Typography,
-  CircularProgress,
+  LinearProgress,
   Alert,
   IconButton,
   Dialog,
@@ -18,8 +18,10 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-  TextField
+  TextField,
+  Pagination
 } from '@mui/material';
+import Stack from '@mui/material/Stack';
 import { styled } from '@mui/system';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -106,6 +108,7 @@ const EmployeeDetailsTableCell = styled(TableCell)({
     },
 });
 
+const PAGE_SIZE = 2;
 
 const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
@@ -123,6 +126,7 @@ const EmployeeTable = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('ID');
+  const [currentPage, setCurrentPage] = useState(1);
   const [newEmployeeData, setNewEmployeeData] = useState({
     fullname: '',
     email: '',
@@ -336,10 +340,26 @@ const handleEditSubmit = () => {
     setSelectedEmployee(null);
   }
 
+  const totalPages = Math.ceil(filteredEmployees.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = currentPage * PAGE_SIZE;
+  const currentEmployees = sortedEmployees.slice(startIndex, endIndex);
+  const handlePageChange = (event, page) => {
+    setCurrentPage(page);
+  };
+
+  if (currentEmployees.length === 0) {
+    return (
+      <StyledContainer>
+        <Typography>No employees found.</Typography>
+      </StyledContainer>
+    );
+  }
+
   if (loading) {
     return (
       <StyledContainer>
-        <CircularProgress />
+        <LinearProgress color="success" />
       </StyledContainer>
     );
   }
@@ -372,7 +392,7 @@ const handleEditSubmit = () => {
              </TableRow>
           </StyledTableHead>
           <TableBody>
-            {sortedEmployees.map((employee) => (
+            {currentEmployees.map((employee) => (
               <StyledTableRow key={employee.id}>
                 <TableCell>{employee.id}</TableCell>
                 <TableCell>{employee.fullname}</TableCell>
@@ -610,6 +630,14 @@ const handleEditSubmit = () => {
           </Button>
         </StyledDialogActions>
       </StyledDialog>
+      <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+              variant="outlined"
+              shape="rounded"
+              style={{ marginTop: '20px' }}
+            />
     </StyledContainer>
   );
 };
