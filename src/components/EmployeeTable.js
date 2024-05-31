@@ -53,6 +53,9 @@ const StyledTableRow = styled(TableRow)({
   '&:nth-of-type(odd)': {
     backgroundColor: '#f5f5f5',
   },
+  '&:hover': {
+    backgroundColor: '#f1f1f1',
+  },
 });
 
 const StyledDialog = styled(Dialog)({
@@ -118,6 +121,8 @@ const EmployeeTable = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('ID');
   const [newEmployeeData, setNewEmployeeData] = useState({
     fullname: '',
     email: '',
@@ -191,6 +196,53 @@ const fetchEmployees = () => {
  useEffect(() => {
    fetchEmployees();
  }, []);
+
+const handleRequestSort = (property) => {
+  const isAsc = orderBy === property && order === 'asc';
+  setOrder(isAsc ? 'desc' : 'asc');
+  setOrderBy(property);
+};
+
+const [searchQuery, setSearchQuery] = useState("");
+
+const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredEmployees = employees.filter((employee) =>
+     employee.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     employee.phoneNumber.includes(searchQuery) ||
+     employee.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     employee.gender.toLowerCase().includes(searchQuery.toLowerCase())
+   );
+
+
+   const sortedEmployees = filteredEmployees.sort((a, b) => {
+     if (orderBy === 'fullname') {
+       return order === 'asc'
+         ? a.fullname.localeCompare(b.fullname)
+         : b.fullname.localeCompare(a.fullname);
+     } else if (orderBy === 'email') {
+       return order === 'asc'
+         ? a.email.localeCompare(b.email)
+         : b.email.localeCompare(a.email);
+     } else if (orderBy === 'phoneNumber') {
+       return order === 'asc'
+         ? a.phoneNumber.localeCompare(b.phoneNumber)
+         : b.phoneNumber.localeCompare(a.phoneNumber);
+     } else if (orderBy === 'jobTitle') {
+       return order === 'asc'
+         ? a.jobTitle.localeCompare(b.jobTitle)
+         : b.jobTitle.localeCompare(a.jobTitle);
+     } else if (orderBy === 'gender') {
+       return order === 'asc'
+         ? a.gender.localeCompare(b.gender)
+         : b.gender.localeCompare(a.gender);
+     } else {
+       return 0;
+     }
+   });
 
   const handleViewClick = (employee) => {
     setSelectedEmployee(employee);
@@ -302,24 +354,25 @@ const handleEditSubmit = () => {
 
   return (
     <StyledContainer>
-      <StyledTypography style = {{padding: "30px"}} variant="h4" component="h2" gutterBottom>
+      <StyledTypography style = {{padding: "30px 0px"}} variant="h4" component="h2" gutterBottom>
         Employee List
       </StyledTypography>
+      <TextField id="outlined-basic" label="Type to search" variant="outlined" style = {{margin: "20px 3%"}} onChange={handleSearchChange}/>
       <StyledTableContainer component={Paper}>
         <Table>
           <StyledTableHead>
-            <TableRow>
-              <StyledTableCell>ID</StyledTableCell>
-              <StyledTableCell>Full Name</StyledTableCell>
-              <StyledTableCell>Email</StyledTableCell>
-              <StyledTableCell>Phone Number</StyledTableCell>
-              <StyledTableCell>Job Title</StyledTableCell>
-              <StyledTableCell>Gender</StyledTableCell>
-              <StyledTableCell>Actions</StyledTableCell>
-            </TableRow>
+             <TableRow>
+               <StyledTableCell onClick={() => handleRequestSort('id')}>ID</StyledTableCell>
+               <StyledTableCell onClick={() => handleRequestSort('fullname')}>Full Name</StyledTableCell>
+               <StyledTableCell onClick={() => handleRequestSort('email')}>Email</StyledTableCell>
+               <StyledTableCell onClick={() => handleRequestSort('phoneNumber')}>Phone Number</StyledTableCell>
+               <StyledTableCell onClick={() => handleRequestSort('jobTitle')}>Job Title</StyledTableCell>
+               <StyledTableCell onClick={() => handleRequestSort('gender')}>Gender</StyledTableCell>
+               <StyledTableCell>Actions</StyledTableCell>
+             </TableRow>
           </StyledTableHead>
           <TableBody>
-            {employees.map((employee) => (
+            {sortedEmployees.map((employee) => (
               <StyledTableRow key={employee.id}>
                 <TableCell>{employee.id}</TableCell>
                 <TableCell>{employee.fullname}</TableCell>
@@ -328,11 +381,7 @@ const handleEditSubmit = () => {
                 <TableCell>{employee.jobTitle}</TableCell>
                 <TableCell>{employee.gender}</TableCell>
                 <TableCell>
-                  <IconButton
-                    aria-label="view"
-                    color="primary"
-                    onClick={() => handleViewClick(employee)}
-                  >
+                  <IconButton aria-label="view" color="primary" onClick={() => handleViewClick(employee)}>
                     <VisibilityIcon />
                   </IconButton>
                   <IconButton aria-label="edit" color="primary" onClick={() => handleEditClick(employee)}>
